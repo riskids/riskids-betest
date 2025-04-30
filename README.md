@@ -48,7 +48,7 @@ docker-compose down
 
 After starting the services, access the API documentation at:
 
-http://localhost:3000/api-docs
+http://ms-betest-f632ba39b607.herokuapp.com/api-docs/
 
 ## Testing
 

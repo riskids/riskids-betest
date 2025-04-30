@@ -1,6 +1,4 @@
-# BE Test Microservice
-
-A Node.js/Express microservice with MongoDB and Redis for user account management.
+# BE Test Riski Dwi Sabariyanto
 
 ## Prerequisites
 

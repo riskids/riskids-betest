@@ -21,10 +21,6 @@ const options = {
         User: {
           type: 'object',
           properties: {
-            userId: {
-              type: 'string',
-              description: 'Unique user identifier'
-            },
             fullName: {
               type: 'string',
               description: 'User full name'
@@ -46,7 +42,7 @@ const options = {
               format: 'password'
             }
           },
-          required: ['userId', 'fullName', 'emailAddress', 'password']
+          required: [ 'fullName', 'emailAddress', 'password']
         },
         AccountLogin: {
           type: 'object',

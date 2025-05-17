@@ -14,15 +14,18 @@ exports.login = async (req, res) => {
   try {
     const { emailAddress, password } = req.body;
     
+    // Try finding user by email
+    const user = await User.findOne({ emailAddress: emailAddress });
+    
     // Find account login by userName or email
     let accountLogin = await AccountLogin.findOne({ emailAddress });
     if (!accountLogin) {
-      // Try finding user by email
-      const user = await User.findOne({ emailAddress: emailAddress });
       if (user) {
-        accountLogin = await AccountLogin.findOne({ userId: user.userId });
+        accountLogin = await AccountLogin.findOne({ userId: user._id });
+        console.log(accountLogin)
       }
       if (!accountLogin) {
+        console.log("ga lolo account login")
         return res.status(401).json(INVALID_CREDENTIALS_RESPONSE);
       }
     }
@@ -34,18 +37,13 @@ exports.login = async (req, res) => {
       .replace(/^\$2b\$/, '$2a$');
     const isMatch = await bcrypt.compare(password, normalizedHash);
     if (!isMatch) {
+      console.log("ga lolo password")
       return res.status(401).json(INVALID_CREDENTIALS_RESPONSE);
     }
 
     // Update last login time
     accountLogin.lastLoginDateTime = new Date();
     await accountLogin.save();
-
-    // Get user info
-    const user = await User.findOne({ userId: accountLogin.userId });
-    if (!user) {
-      return res.status(401).json(INVALID_CREDENTIALS_RESPONSE);
-    }
 
     // Generate token
     const token = generateToken(accountLogin);
@@ -54,7 +52,7 @@ exports.login = async (req, res) => {
       status: 'success',
       data: {
         user: {
-          userId: user.userId,
+          userId: user._id,
           fullName: user.fullName,
           emailAddress: user.emailAddress
         },

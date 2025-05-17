@@ -5,10 +5,13 @@ const accountLoginSchema = new mongoose.Schema({
   userName: { type: String, required: true },
   password: { type: String, required: true },
   lastLoginDateTime: { type: Date, required: true, default: Date.now },
-  userId: { type: String, required: true, ref: 'User' }
+  userId: { 
+    type: String,
+    required: true
+  }
 });
 
-accountLoginSchema.index({ userId: 1 });
+accountLoginSchema.index({ user: 1 });
 accountLoginSchema.index({ lastLoginDateTime: 1 });
 
 module.exports = mongoose.model('AccountLogin', accountLoginSchema);

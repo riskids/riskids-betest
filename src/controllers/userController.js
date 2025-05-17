@@ -7,7 +7,10 @@ const bcrypt = require('bcryptjs');
 class UserController {
   static async createUser(req, res) {
     try {
-      const user = new User(req.body);
+      // Remove userId from request body if present
+      const userData = {...req.body};
+      delete userData.userId;
+      const user = new User(userData);
       await user.save();
       
       // Create associated account login
@@ -15,7 +18,7 @@ class UserController {
         accountId: `acc_${Date.now()}`,
         userName: req.body.userName || req.body.emailAddress.split('@')[0],
         password: await bcrypt.hash(req.body.password, parseInt(process.env.SALT_ROUNDS || '8')),
-        userId: user.userId
+        userId: user._id
       });
       await accountLogin.save();
 
@@ -26,7 +29,7 @@ class UserController {
         status: 'success',
         data: {
           user: {
-            userId: user.userId,
+            userId: user._id,
             fullName: user.fullName,
             emailAddress: user.emailAddress
           }
@@ -132,14 +135,21 @@ class UserController {
 
       const inactiveAccounts = await AccountLogin.find({
         lastLoginDateTime: { $lt: threeDaysAgo }
-      }).populate({
-          path: 'user',
-          options: { collection: 'users' }
       });
+
+      const userPromises = inactiveAccounts.map(acc => 
+        User.findOne({ userId: acc.userId })
+      );
+      const users = await Promise.all(userPromises);
+
+      const result = inactiveAccounts.map((account, index) => ({
+        ...account.toObject(),
+        user: users[index]
+      }));
 
       res.json({
         status: 'success',
-        data: { accounts: inactiveAccounts }
+        data: { accounts: result }
       });
     } catch (error) {
       logger.error({
@@ -158,9 +168,13 @@ class UserController {
 
   static async updateUser(req, res) {
     try {
+      // Remove userId from request body if present
+      const userData = {...req.body};
+      delete userData.userId;
+      
       const user = await User.findOneAndUpdate(
-        { userId: req.params.userId },
-        req.body,
+        { _id: req.params.userId },
+        userData, 
         { new: true, runValidators: true }
       );
 
@@ -190,7 +204,7 @@ class UserController {
 
   static async deleteUser(req, res) {
     try {
-      const user = await User.findOneAndDelete({ userId: req.params.userId });
+      const user = await User.findOneAndDelete({ _id: req.params.userId });
       if (!user) {
         return res.status(404).json({
           status: 'error',
@@ -200,7 +214,7 @@ class UserController {
       }
 
       // Delete account login
-      await AccountLogin.findOneAndDelete({ userId: user.userId });
+      await AccountLogin.findOneAndDelete({ user: user._id });
 
       // Clear cache
       await CacheService.clearUserCache(user);

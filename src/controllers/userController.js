@@ -1,3 +1,4 @@
+const logger = require('../utils/logger');
 const User = require('../models/User');
 const AccountLogin = require('../models/AccountLogin');
 const { CacheService } = require('../services/cacheService');
@@ -68,6 +69,12 @@ class UserController {
         data: { user }
       });
     } catch (error) {
+      logger.error({
+        message: 'Get user by account number error',
+        error: error.message,
+        stack: error.stack,
+        timestamp: new Date().toISOString()
+      });
       res.status(500).json({
         status: 'error',
         code: 'SERVER_ERROR',
@@ -104,6 +111,12 @@ class UserController {
         data: { user }
       });
     } catch (error) {
+      logger.error({
+        message: 'Get user by registration number error',
+        error: error.message,
+        stack: error.stack,
+        timestamp: new Date().toISOString()
+      });
       res.status(500).json({
         status: 'error',
         code: 'SERVER_ERROR',
@@ -126,6 +139,12 @@ class UserController {
         data: { accounts: inactiveAccounts }
       });
     } catch (error) {
+      logger.error({
+        message: 'Get inactive accounts error',
+        error: error.message,
+        stack: error.stack,
+        timestamp: new Date().toISOString()
+      });
       res.status(500).json({
         status: 'error',
         code: 'SERVER_ERROR',
@@ -188,6 +207,12 @@ class UserController {
         message: 'User deleted successfully'
       });
     } catch (error) {
+      logger.error({
+        message: 'Delete user error',
+        error: error.message,
+        stack: error.stack,
+        timestamp: new Date().toISOString()
+      });
       res.status(500).json({
         status: 'error',
         code: 'SERVER_ERROR',

@@ -1,4 +1,5 @@
 require('dotenv').config();
+const logger = require('./src/utils/logger');
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
@@ -20,7 +21,10 @@ app.use(express.urlencoded({ extended: true }));
 // Database connections
 Promise.all([dbConnect(), redisConnect])
   .then(() => {
-    console.log('All services connected successfully');
+    logger.info({
+      message: 'All services connected successfully',
+      timestamp: new Date().toISOString()
+    });
     
     // Routes
     const userRoutes = require('./src/routes/userRoutes');
@@ -28,7 +32,12 @@ Promise.all([dbConnect(), redisConnect])
 
     // Error handling middleware
     app.use((err, req, res, next) => {
-      console.error(err.stack);
+      logger.error({
+        message: 'Express error handler',
+        error: err.message,
+        stack: err.stack,
+        timestamp: new Date().toISOString()
+      });
       res.status(500).json({
         status: 'error',
         code: 'SERVER_ERROR',
@@ -39,22 +48,41 @@ Promise.all([dbConnect(), redisConnect])
     // Start server
     const PORT = process.env.PORT || 3000;
     app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
-      console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+    logger.info({
+      message: 'Server started successfully',
+      port: PORT,
+      environment: process.env.NODE_ENV || 'development',
+      timestamp: new Date().toISOString()
+    });
     });
   })
   .catch(err => {
-    console.error('Failed to initialize services:', err);
+    logger.error({
+      message: 'Failed to initialize services',
+      error: err.message,
+      stack: err.stack,
+      timestamp: new Date().toISOString()
+    });
     process.exit(1);
   });
 
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err) => {
-  console.error('Unhandled Rejection:', err);
+  logger.error({
+    message: 'Unhandled Rejection',
+    error: err.message,
+    stack: err.stack,
+    timestamp: new Date().toISOString()
+  });
 });
 
 // Handle uncaught exceptions
 process.on('uncaughtException', (err) => {
-  console.error('Uncaught Exception:', err);
+  logger.error({
+    message: 'Uncaught Exception',
+    error: err.message,
+    stack: err.stack,
+    timestamp: new Date().toISOString()
+  });
   process.exit(1);
 });

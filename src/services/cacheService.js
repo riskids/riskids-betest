@@ -1,4 +1,5 @@
 const redis = require('redis');
+const logger = require('../utils/logger');
 
 const client = redis.createClient({
   url: process.env.REDIS_URL || 'redis://localhost:6379',
@@ -10,18 +11,34 @@ const client = redis.createClient({
 
 let isConnected = false;
 
-client.on('error', (err) => console.error('Redis Client Error:', err));
+client.on('error', (err) => logger.error({
+  message: 'Redis Client Error',
+  error: err.message,
+  stack: err.stack,
+  timestamp: new Date().toISOString()
+}));
 client.on('ready', () => {
-  console.log('Redis connected');
+  logger.info({
+    message: 'Redis connected',
+    timestamp: new Date().toISOString()
+  });
   isConnected = true;
 });
 client.on('end', () => {
   isConnected = false;
-  console.log('Redis disconnected');
+  logger.info({
+    message: 'Redis disconnected',
+    timestamp: new Date().toISOString()
+  });
 });
 
 const connectPromise = client.connect().catch(err => {
-  console.error('Redis Connection Error:', err);
+  logger.error({
+    message: 'Redis Connection Error',
+    error: err.message,
+    stack: err.stack,
+    timestamp: new Date().toISOString()
+  });
   process.exit(1);
 });
 
@@ -41,7 +58,12 @@ class CacheService {
       const data = await this.withTimeout(client.get(`user:account:${accountNumber}`));
       return data ? JSON.parse(data) : null;
     } catch (err) {
-      console.error('Redis Get Error:', err);
+      logger.error({
+        message: 'Redis Get Error',
+        error: err.message,
+        stack: err.stack,
+        timestamp: new Date().toISOString()
+      });
       return null;
     }
   }
@@ -52,7 +74,12 @@ class CacheService {
       const data = await this.withTimeout(client.get(`user:reg:${registrationNumber}`));
       return data ? JSON.parse(data) : null;
     } catch (err) {
-      console.error('Redis Get Error:', err);
+      logger.error({
+        message: 'Redis Get Error',
+        error: err.message,
+        stack: err.stack,
+        timestamp: new Date().toISOString()
+      });
       return null;
     }
   }
@@ -64,9 +91,18 @@ class CacheService {
         client.setEx(`user:account:${user.accountNumber}`, CACHE_TTL, JSON.stringify(user)),
         client.setEx(`user:reg:${user.registrationNumber}`, CACHE_TTL, JSON.stringify(user))
       ]), 2000);
-      console.log(`Cached user ${user.userId}`);
+      logger.info({
+        message: 'User cached',
+        userId: user.userId,
+        timestamp: new Date().toISOString()
+      });
     } catch (err) {
-      console.error('Redis Set Error:', err);
+      logger.error({
+        message: 'Redis Set Error',
+        error: err.message,
+        stack: err.stack,
+        timestamp: new Date().toISOString()
+      });
     }
   }
 
@@ -77,9 +113,18 @@ class CacheService {
         client.del(`user:account:${user.accountNumber}`),
         client.del(`user:reg:${user.registrationNumber}`)
       ]), 2000);
-      console.log(`Cleared cache for user ${user.userId}`);
+      logger.info({
+        message: 'User cache cleared',
+        userId: user.userId,
+        timestamp: new Date().toISOString()
+      });
     } catch (err) {
-      console.error('Redis Delete Error:', err);
+      logger.error({
+        message: 'Redis Delete Error',
+        error: err.message,
+        stack: err.stack,
+        timestamp: new Date().toISOString()
+      });
     }
   }
 }

@@ -1,3 +1,4 @@
+const logger = require('../utils/logger');
 const AccountLogin = require('../models/AccountLogin');
 const User = require('../models/User');
 const { generateToken } = require('../utils/jwt');
@@ -61,7 +62,12 @@ exports.login = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Login error:', error);
+    logger.error({
+      message: 'Login error',
+      error: error.message,
+      stack: error.stack,
+      timestamp: new Date().toISOString()
+    });
     res.status(500).json({
       status: 'error',
       code: 'SERVER_ERROR',
@@ -85,7 +91,12 @@ exports.logout = async (req, res) => {
       message: 'Logged out successfully'
     });
   } catch (error) {
-    console.error('Logout error:', error);
+    logger.error({
+      message: 'Logout error', 
+      error: error.message,
+      stack: error.stack,
+      timestamp: new Date().toISOString()
+    });
     res.status(500).json({
       status: 'error',
       code: 'SERVER_ERROR',

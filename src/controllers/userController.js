@@ -132,7 +132,10 @@ class UserController {
 
       const inactiveAccounts = await AccountLogin.find({
         lastLoginDateTime: { $lt: threeDaysAgo }
-      }).populate('user');
+      }).populate({
+          path: 'user',
+          options: { collection: 'users' }
+      });
 
       res.json({
         status: 'success',
